@@ -1,35 +1,25 @@
 #!/usr/bin/env bash
 set -e
+#!/usr/bin/env bash
+set -e
 
-echo "Hello gh-assignments!"
-
-# Snippets to help get started:
-
-# Determine if an executable is in the PATH
-# if ! type -p ruby >/dev/null; then
-#   echo "Ruby not found on the system" >&2
-#   exit 1
-# fi
-
-# Pass arguments through to another command
-# gh issue list "$@" -R cli/cli
-
-# Using the gh api command to retrieve and format information
-# QUERY='
-#   query($endCursor: String) {
-#     viewer {
-#       repositories(first: 100, after: $endCursor) {
-#         nodes {
-#           nameWithOwner
-#           stargazerCount
-#         }
-#       }
-#     }
-#   }
-# '
-# TEMPLATE='
-#   {{- range $repo := .data.viewer.repositories.nodes -}}
-#     {{- printf "name: %s - stargazers: %v\n" $repo.nameWithOwner $repo.stargazerCount -}}
-#   {{- end -}}
-# '
-# exec gh api graphql -f query="${QUERY}" --paginate --template="${TEMPLATE}"
+function usage() {
+    echo "Usage: gh assignments [classroom name]"
+    echo "Description: List of assignments"
+}
+# if option is -h or --help, then show help
+if [ "$1" == "-h" ] || [ "$1" == "--help" ]; then
+    usage
+    exit 0
+fi
+ORGANIZATION=$(gh pwd)
+if [ -n "$1" ]; then
+  ORGANIZATION=$1
+fi
+CLASSROOM=$(gh classroom list --per-page 200 | grep $ORGANIZATION | awk '{print $1}')
+if [ -z "$CLASSROOM" ]; then
+    echo "No classroom \"$ORGANIZATION\" found"
+    exit 1
+else
+  gh classroom assignments list -c $CLASSROOM --per-page 300 
+fi
